@@ -1,10 +1,18 @@
 import streamlit as st
+
 try:
     from streamlit_lottie import st_lottie
     lottie_available = True
 except ModuleNotFoundError:
     lottie_available = False
     st.warning("Lottie animations are unavailable. Install with `pip install streamlit-lottie` to enable them.")
+
+# Later in your code:
+if lottie_available:
+    st_lottie(lottie_json, height=300, key="some_key")
+else:
+    st.info("Animation not available. Install `streamlit-lottie` to view.")
+
 
 from streamlit_lottie import st_lottie
 import json
