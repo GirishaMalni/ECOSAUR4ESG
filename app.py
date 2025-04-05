@@ -1,4 +1,11 @@
 import streamlit as st
+try:
+    from streamlit_lottie import st_lottie
+    lottie_available = True
+except ModuleNotFoundError:
+    lottie_available = False
+    st.warning("Lottie animations are unavailable. Install with `pip install streamlit-lottie` to enable them.")
+
 from streamlit_lottie import st_lottie
 import json
 import os
@@ -16,6 +23,7 @@ from langchain.llms import HuggingFacePipeline
 from langchain.vectorstores import FAISS
 from langchain.embeddings import HuggingFaceEmbeddings
 from crewai import Crew, Agent, Task
+
 
 # === Streamlit Setup ===
 st.set_page_config(page_title="ESG Analyzer", layout="wide")
@@ -195,6 +203,11 @@ if uploaded_file is not None:
         }
         for cat, rec in recs.items():
             st.markdown(f"- **{cat}**: {rec}")
+            
+    if lottie_available:
+    st_lottie(lottie_json, height=300, key="some_key")
+    else:
+    st.info("Animation not available. Install `streamlit-lottie` to view.")
 
     if planner_lottie:
         st_lottie(planner_lottie, height=150)
