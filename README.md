@@ -1,6 +1,7 @@
 # ECOSAUR4ESG
 MULTIMODAL RAG AUTOMATION FOR ESG REPORT EVALUATION
-# 🌱 ECOSAUR4ESG – ESG Report Intelligence Engine
+# 🌱 ECOSAUR4ESG – Sustainability Meets Intelligence
+# A Responsible AI Model
 
 
 
