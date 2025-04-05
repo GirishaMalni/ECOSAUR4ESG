@@ -1,4 +1,5 @@
 import streamlit as st
+from streamlit_lottie import st_lottie
 import json
 import os
 import pandas as pd
@@ -10,32 +11,43 @@ from transformers import pipeline
 import torch
 import re
 from typing import Dict
-from crewai import Crew, Agent, Task
 from langchain.chains import RetrievalQA
 from langchain.llms import HuggingFacePipeline
 from langchain.vectorstores import FAISS
 from langchain.embeddings import HuggingFaceEmbeddings
+from crewai import Crew, Agent, Task
 
 # === Streamlit Setup ===
 st.set_page_config(page_title="ESG Analyzer", layout="wide")
 
+# === Load Lottie Animation ===
+def load_lottie(filepath):
+    if os.path.exists(filepath):
+        with open(filepath, "r") as f:
+            return json.load(f)
+    return None
+
+header_lottie = load_lottie("assets/esg_lottie.json")
+planner_lottie = load_lottie("assets/planner.json")
+strategy_lottie = load_lottie("assets/strategy.json")
+
 # === Sidebar Utilities ===
 st.sidebar.title("🌎 ESG Analyzer Tools")
 uploaded_file = st.sidebar.file_uploader("📄 Upload ESG Report (PDF, Text, or Image)", type=["pdf", "txt", "png", "jpg"])
-industry = st.sidebar.selectbox("🏢 Select Industry", [
-    "Finance", "Healthcare", "Energy", "Agriculture", "Logistics",
-    "Manufacturing", "Retail", "Technology", "Education", "Automotive"
-])
+industry = st.sidebar.selectbox("🏢 Select Industry", ["Finance", "Healthcare", "Energy", "Agriculture", "Logistics", "Manufacturing", "Retail", "Technology", "Education", "Automotive"])
 insight_level = st.sidebar.select_slider("🔍 Insights Level", options=["Basic", "Moderate", "Advanced"], value="Advanced")
 show_trend = st.sidebar.checkbox("Show ESG Trend Analysis")
 enable_recommendations = st.sidebar.checkbox("Enable AI Recommendations")
 run_analysis = st.sidebar.button("🧠 Run Agentic Analysis")
 
-# === Main Section ===
+# === Header ===
 with st.container():
-    st.subheader("🍀 Welcome to ECOSAUR: the ESG Analyzer")
-    st.title("Empowering Responsible Decision Making through Numbers: Sustainability Meets Intelligence")
+    st.subheader("🍀Welcome to ECOSAUR : the ESG Analyzer")
+    st.title("Empowering Responsible Decision Making through numbers : Sustainability Meets Intelligence")
+    if header_lottie:
+        st_lottie(header_lottie, height=150)
 
+# === OCR and Summarization ===
 def extract_text_from_pdf(pdf_file):
     try:
         reader = PdfReader(pdf_file)
@@ -56,9 +68,11 @@ def extract_esg_scores(text: str) -> Dict[str, int]:
         if match:
             scores[category] = min(int(match.group(1)), 100)
         else:
+            # Normalize count-based fallback to a 0–100 range (max 50 keywords → 100 points)
             raw_score = text.lower().count(category.lower()) * 2
             scores[category] = min(raw_score, 100)
     return scores
+
 
 def generate_dynamic_insights(scores: Dict[str, int]) -> str:
     insights = []
@@ -72,6 +86,7 @@ def generate_dynamic_insights(scores: Dict[str, int]) -> str:
         insights.append("✅ Excellent performance across all ESG pillars.")
     return "\n".join(insights)
 
+# === Benchmark Data ===
 industry_benchmarks = {
     "Finance": {"Environment": 65, "Social": 70, "Governance": 75},
     "Healthcare": {"Environment": 60, "Social": 75, "Governance": 70},
@@ -88,6 +103,7 @@ industry_benchmarks = {
 def display_categorywise_comparison(esg_scores: Dict[str, int], benchmark: Dict[str, int]):
     st.subheader("📊 Detailed Category-wise ESG Scoring and Benchmark Comparison")
 
+    # Create dataframe
     category_df = pd.DataFrame({
         "Category": esg_scores.keys(),
         "Your Score": esg_scores.values(),
@@ -95,13 +111,17 @@ def display_categorywise_comparison(esg_scores: Dict[str, int], benchmark: Dict[
         "Difference": [esg_scores[cat] - benchmark[cat] for cat in esg_scores.keys()]
     })
 
+    # Display table
     st.dataframe(category_df.style.background_gradient(cmap='RdYlGn', subset=["Difference"]))
 
+    # Plot bar chart
     bar_fig = px.bar(category_df, x="Category", y=["Your Score", "Benchmark"],
                      barmode="group", text_auto=True,
                      title="Category-wise ESG Score vs Benchmark")
     st.plotly_chart(bar_fig)
 
+
+# === CrewAI Agents ===
 def run_crewai_agents(content):
     extractor = Agent(
         name="Extractor",
@@ -124,10 +144,12 @@ def run_crewai_agents(content):
         backstory="Knowledgeable in sustainable business practices and ESG compliance strategies across sectors."
     )
 
+    # Sample task logic (expandable)
     st.code("CrewAgent-Extractor: ESG data extracted")
     st.code("CrewAgent-Analyzer: Compared with benchmarks")
     st.code("CrewAgent-InsightGenerator: Generated insights")
 
+# === Main ===
 if uploaded_file is not None:
     file_ext = uploaded_file.name.split(".")[-1].lower()
     if file_ext == "txt":
@@ -145,18 +167,17 @@ if uploaded_file is not None:
     benchmark = industry_benchmarks.get(industry, {"Environment": 60, "Social": 60, "Governance": 60})
     display_categorywise_comparison(esg_scores, benchmark)
 
-    df = pd.DataFrame({
-        "Category": list(esg_scores.keys()),
-        "Your Score": list(esg_scores.values()),
-        "Benchmark": [benchmark[k] for k in esg_scores.keys()]
-    })
+
+    df = pd.DataFrame({"Category": list(esg_scores.keys()),
+                       "Your Score": list(esg_scores.values()),
+                       "Benchmark": [benchmark[k] for k in esg_scores.keys()]})
 
     overall_score = round(sum(esg_scores.values()) / 3, 2)
-    normalized_score = round(min((overall_score / 100) * 100, 100), 2)
+    normalized_score = round((overall_score / 100) * 100, 2) if overall_score <= 100 else 100
     benchmark_score = round(sum(benchmark.values()) / 3, 2)
 
     st.metric("Overall ESG Score (Your Report)", f"{normalized_score} / 100")
-    st.metric(f"Industry Benchmark ({industry})", benchmark_score)
+    st.metric("Industry Benchmark ({} Industry)".format(industry), benchmark_score)
 
     st.subheader("📌 ESG Category-wise Comparison")
     st.bar_chart(df.set_index("Category"))
@@ -179,10 +200,51 @@ if uploaded_file is not None:
         for cat, rec in recs.items():
             st.markdown(f"- **{cat}**: {rec}")
 
+    if planner_lottie:
+        st_lottie(planner_lottie, height=150)
+    if strategy_lottie:
+        st_lottie(strategy_lottie, height=150)
+
     if run_analysis:
         run_crewai_agents(content)
 
+# === ESG Time Series Feature ===
+if show_trend:
+    st.subheader("📈 ESG Time Series Trend Analysis")
+
+    if "esg_timeseries" not in st.session_state:
+        st.session_state["esg_timeseries"] = []
+
+    # Ask for optional date
+    date_input = st.date_input("📅 Date of Report", help="Optional: Associate this ESG report with a specific date.")
+
+    # Add current report to session time series
+    if st.button("➕ Add Report to ESG Trend Tracker"):
+        st.session_state["esg_timeseries"].append({
+            "Date": date_input if date_input else pd.Timestamp.now().date(),
+            "Environment": esg_scores["Environment"],
+            "Social": esg_scores["Social"],
+            "Governance": esg_scores["Governance"],
+            "Overall": overall_score
+        })
+        st.success("Added report to ESG time series!")
+
+    # Convert to DataFrame
+    if len(st.session_state["esg_timeseries"]) >= 2:
+        ts_df = pd.DataFrame(st.session_state["esg_timeseries"])
+        ts_df = ts_df.sort_values("Date")
+
+        st.dataframe(ts_df)
+
+        # Plot ESG Over Time
+        line_fig = px.line(ts_df, x="Date", y=["Environment", "Social", "Governance", "Overall"],
+                           markers=True, title="📊 ESG Trend Over Time")
+        st.plotly_chart(line_fig, use_container_width=True)
+    elif len(st.session_state["esg_timeseries"]) == 1:
+        st.info("Add more reports to view trend over time.")
+
+
 st.markdown("---")
-st.markdown("Made with 💚 towards the Sustainable Future by Girisha Malni")
+st.markdown("Made with 💚 towards the Sustainable Future by Girisha Malni" )
 
 
