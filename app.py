@@ -213,7 +213,7 @@ if uploaded_file is not None:
             st.markdown(f"- **{cat}**: {rec}")
             
     if lottie_available:
-    st_lottie(lottie_json, height=300, key="some_key")
+       st_lottie(lottie_json, height=300, key="some_key")
     else:
     st.info("Animation not available. Install `streamlit-lottie` to view.")
 
