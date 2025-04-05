@@ -2,7 +2,7 @@
 MULTIMODAL RAG AUTOMATION FOR ESG REPORT EVALUATION
 # 🌱 ECOSAUR4ESG – ESG Report Intelligence Engine
 
-![ESG Analysis Architecture](A_colorful_digital_diagram_illustrates_an_ESG_Anal.png)
+
 
 **ECOSAUR4ESG** is an intelligent multimodal ESG (Environmental, Social, and Governance) analyzer that extracts, evaluates, and visualizes ESG-related data from unstructured reports using AI-powered agents, unified multimodal embeddings, and insightful scoring techniques.
 
