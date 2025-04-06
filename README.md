@@ -1,57 +1,90 @@
-# ECOSAUR4ESG
-MULTIMODAL RAG AUTOMATION FOR ESG REPORT EVALUATION
-# 🌱 ECOSAUR4ESG – Sustainability Meets Intelligence
-# A Responsible AI Model
-
-
-
-**ECOSAUR4ESG** is an intelligent multimodal ESG (Environmental, Social, and Governance) analyzer that extracts, evaluates, and visualizes ESG-related data from unstructured reports using AI-powered agents, unified multimodal embeddings, and insightful scoring techniques.
+# 🌱 ECOSAUR4ESG – Sustainability Meets Intelligence  
+**MULTIMODAL RAG AUTOMATION FOR ESG REPORT EVALUATION**  
+*A Responsible AI Model where Greener Data Meets Smarter Decisions!*
 
 ---
 
-## 🚀 Features
+## 🚀 Key Features
 
-- 🔍 Extract ESG data from PDF reports using **CrewAI agents**
-- 🤖 Use **Mixture of Insightful Experts (MoIE)** to enhance analysis across E, S, G domains
-- 🔗 Leverage **Unified Multimodal Embedding Space** for text & image alignment
-- 📊 Compute overall & category-wise ESG scores out of 100
-- 📈 Visual comparison with ESG benchmarks using colorful charts & tables
-- 🎯 Final ESG output JSON + graphical insights
+- 🧠 **CrewAI Agentic Workflow**: Modular AI agents for extracting, analyzing, benchmarking, and generating ESG insights.
+- 🖼️ **Multimodal Parsing**: Processes text, charts, tables, and images from PDF, TXT, PNG, JPG reports.
+- 📊 **Category-wise ESG Scoring**: Computes scores for Environment, Social, and Governance out of 100.
+- 🧩 **Unified Multimodal Embedding Space**: Embeds text, image, graph, and tabular data for intelligent querying.
+- 🧠 **Mixture of Insightful Experts (MoIE)**: Expert ensemble reasoning per ESG domain with an adaptive gating mechanism.
+- 🔎 **RAG with LangChain + FAISS**: ESG queries retrieve relevant chunks using vector similarity and context-aware analysis.
+- 📉 **Benchmark Comparison**: Real-time visual and tabular comparisons with industry ESG benchmarks.
+- 📈 **Interactive Visualizations**: Radar plots, bar charts, and ESG JSON reports via Streamlit UI.
 
 ---
 
 ## 🧠 Architecture Highlights
 
-- **Crew AI Agents**: Modular agent-based architecture to extract, clean, analyze, and report ESG data
-- **MoIE**: Expert selectors to handle domain-specific insights
-- **LLM + Vision + Embedding Fusion**: Unified space to process multimodal (text + visual) content
-- **Streamlit**: Intuitive frontend for uploading and visualizing results
+1. **Input Preprocessing**
+   - PDFs parsed via PyMuPDF; fallback to OCR using Tesseract for scanned content.
+   - Tables parsed using Camelot, converted to JSON.
+   - Images extracted and encoded via CLIP; graphs parsed or OCR'd.
+   - Text is cleaned and chunked for retrieval.
+
+2. **Unified Embedding Space**
+   - Text, image, table, and layout embeddings fused using HuggingFace models + CLIP.
+   - Stored in FAISS vector database for efficient retrieval.
+
+3. **Gating Network (MoIE)**
+   - Lightweight Transformer/MLP assigns weights to ESG experts.
+   - Decision based on content type, semantic similarity, and info density.
+
+4. **Retrieval-Augmented Generation (RAG)**
+   - ESG queries embedded and matched with multimodal DB.
+   - Retrieved chunks processed by:
+     - 📥 Extractor Agent
+     - 📊 Analyzer Agent
+     - 📌 Benchmark Agent
+     - 💡 Insight Generator Agent
+
+5. **Insights & Output**
+   - AI-generated ESG insights with benchmarking (via ScrapeGraphAI).
+   - Outputs category-wise ESG scores, visual comparisons, and action recommendations.
+   - Final output: JSON report + interactive visual dashboard.
 
 ---
 
-## 🛠️ Tech Stack
+## 🧰 Extensive Tech Stack
 
-| Component               | Tool / Framework              |
-|------------------------|-------------------------------|
-| 🧠 AI Orchestration     | **CrewAI**, **MoIE**, **LangChain** |
-| 📄 PDF Handling         | **PyMuPDF**, **pdf2image**     |
-| 🤖 LLM & Vision         | **Ollama (Qwen-VL)**, **OpenAI**, **CLIP** |
-| 📐 Embeddings           | **Unified Multimodal Embedding Space** |
-| 📊 Visualization        | **Plotly**, **Matplotlib**, **Streamlit** |
-| 🧮 Scoring Logic        | **Pydantic**, **NumPy**, **Custom Benchmarks** |
-| 🔗 Version Control      | **Git**, **GitHub**             |
+### 🤖 AI Frameworks & Agent Architecture
+- **CrewAI** – Agent-based modular architecture
+- **LangChain** – Orchestrating LLM chains and RAG pipelines
+- **Hugging Face Transformers** – LLMs for QA, reasoning, summarization
+- **MoIE (Mixture of Insightful Experts)** – Gated expert selection for E, S, G domains
+- **ScrapeGraphAI** – External benchmarking agent using knowledge graphs
 
----
+### 🧠 NLP & Language Models
+- **Transformers (BERT, T5, GPT)** – For semantic understanding and insight generation
+- **SentencePiece** – Subword tokenization
+- **Torch** – For model loading and fine-tuning
 
-## 🖼 Sample Output
+### 📸 Computer Vision & Image Models
+- **PyMuPDF (fitz)** – Image & text extraction from PDFs
+- **pytesseract + PIL** – OCR for scanned PDFs and figures
+- **CLIP** – Multimodal (image + text) embedding generation
 
-- ✅ ESG Score: `82.3 / 100`
-- ✅ Category Scores:
-  - Environment: `85 / 100`
-  - Social: `78 / 100`
-  - Governance: `84 / 100`
-- 📊 Visualized graphs comparing each category with industry benchmarks
-- 📄 Final JSON with extracted ESG data
+### 🗂️ Data Extraction & Processing
+- **PyPDF2** – PDF text parsing
+- **Camelot** – Table extraction from PDFs
+- **regex** – Pattern extraction
+- **Pandas** – Dataframe-based manipulation
+- **joblib** – Efficient model serialization
+
+### 🔍 Vector Search & Embedding Space
+- **FAISS (CPU)** – Fast vector similarity search
+- **Unified Embedding Pipeline** – Custom logic for combining text, image, graph, and table embeddings
+
+### 📈 Scoring & Machine Learning
+- **scikit-learn** – Classification, score normalization
+- **xgboost** – ESG score classification & regression
+
+### 🖼️ Visualization
+- **Streamlit** – Web interface for file uploads and visualization
+- **Plotly** – Radar plots, bar charts, pie charts, score visuals
 
 ---
 
@@ -61,19 +94,14 @@ MULTIMODAL RAG AUTOMATION FOR ESG REPORT EVALUATION
 pip install -r requirements.txt
 streamlit run app.py
 🤝 Contributing
-Contributions are welcome! Please raise issues or submit a pull request.
-
-📃 License
-This project is licensed under the MIT License.
+Pull requests, issues, and forks are welcome. Help us make ESG reporting smarter and more responsible.
 
 📬 Contact
 Made with ❤️ by Girisha Malni
-🔗 GitHub Repo: https://github.com/GirishaMalni/ECOSAUR4ESG
+🔗 GitHub: https://github.com/GirishaMalni/ECOSAUR4ESG
+📧 Email: [Contact via GitHub Issues]
 
-yaml
-Copy
-Edit
+📄 License
+This project is licensed under the MIT License – feel free to use, modify, and distribute.
 
----
 
-Let me know if you'd like a version with badges (build passing, license, etc.) or want a cleaner minimalist version too.
