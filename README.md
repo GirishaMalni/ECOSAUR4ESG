@@ -76,7 +76,7 @@
 
 ### 🔍 Vector Search & Embedding Space
 - **FAISS (CPU)** – Fast vector similarity search
-- **Unified Embedding Pipeline** – Custom logic for combining text, image, graph, and table embeddings
+- **Unified Embedding Pipeline** – Custom logic for combining text, image, graph and table embeddings in multimodal unified embedding space to enhance the context.
 
 ### 📈 Scoring & Machine Learning
 - **scikit-learn** – Classification, score normalization
