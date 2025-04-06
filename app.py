@@ -16,6 +16,7 @@ from langchain.llms import HuggingFacePipeline
 from langchain.vectorstores import FAISS
 from langchain.embeddings import HuggingFaceEmbeddings
 from crewai import Crew, Agent, Task
+import joblib
 
 # === Streamlit Setup ===
 st.set_page_config(page_title="ESG Analyzer", layout="wide")
@@ -60,6 +61,40 @@ def extract_text_from_image(image_file):
     return pytesseract.image_to_string(image)
 
 summarizer = pipeline("summarization", device=0 if torch.cuda.is_available() else -1)
+
+@st.cache_resource
+def load_esg_model():
+    model_path = "esg_score_model.pkl"
+    if os.path.exists(model_path):
+        return joblib.load(model_path)
+    return None, None
+
+ml_model, model_features = load_esg_model()
+
+# === ML-based ESG Score Prediction from Metadata (optional override) ===
+def predict_esg_scores_ml(metadata_dict: Dict[str, str]) -> Dict[str, int]:
+    if not ml_model:
+        return None
+    try:
+        input_df = pd.DataFrame([metadata_dict])
+        input_df = pd.get_dummies(input_df)
+
+        # Align with training features
+        for col in model_features:
+            if col not in input_df.columns:
+                input_df[col] = 0
+        input_df = input_df[model_features]
+
+        prediction = ml_model.predict(input_df)[0]
+        return {
+            "Environment": min(int(prediction[0]), 100),
+            "Social": min(int(prediction[1]), 100),
+            "Governance": min(int(prediction[2]), 100)
+        }
+    except Exception as e:
+        st.warning(f"ML prediction failed: {e}")
+        return None
+
 
 def extract_esg_scores(text: str) -> Dict[str, int]:
     scores = {"Environment": 0, "Social": 0, "Governance": 0}
@@ -152,20 +187,46 @@ def run_crewai_agents(content):
 # === Main ===
 if uploaded_file is not None:
     file_ext = uploaded_file.name.split(".")[-1].lower()
+
+    # Extract content based on file type
     if file_ext == "txt":
         content = uploaded_file.read().decode("utf-8", errors="ignore")
     elif file_ext == "pdf":
         content = extract_text_from_pdf(uploaded_file)
-    elif file_ext in ["png", "jpg"]:
+    elif file_ext in ["png", "jpg", "jpeg"]:
         content = extract_text_from_image(uploaded_file)
     else:
         content = ""
 
-    st.text_area("📝 Extracted Content", content[:2000])
+    # Display extracted content in a text area (limit to 2000 chars)
+    st.text_area("📝 Extracted Content", content[:2000], height=300)
 
-    esg_scores = extract_esg_scores(content)
+    # Mock or extract metadata (can improve this later with NLP or file parsing)
+    metadata_dict = {
+        "Country Code": "IND",       # optionally extract dynamically
+        "Year": "2023",              # optionally extract from filename or text
+        "Series Code": "ESGAGGREGATE"  # or set dynamically based on content
+    }
+
+    # Predict ESG scores using ML model first
+    ml_scores = predict_esg_scores_ml(metadata_dict)
+
+    if ml_scores:
+        esg_scores = ml_scores
+        st.info("✅ ESG scores predicted using trained ML model.")
+    else:
+        esg_scores = extract_esg_scores(content)
+        st.info("⚠️ Fallback to rule-based ESG score extraction.")
+
+    # Get industry from user or other logic
+    industry = st.selectbox("🏭 Select Industry", list(industry_benchmarks.keys()))
+
+    # Load benchmark or use default
     benchmark = industry_benchmarks.get(industry, {"Environment": 60, "Social": 60, "Governance": 60})
+
+    # Display comparison chart or metric
     display_categorywise_comparison(esg_scores, benchmark)
+
 
 
     df = pd.DataFrame({"Category": list(esg_scores.keys()),
@@ -246,5 +307,4 @@ if show_trend:
 
 st.markdown("---")
 st.markdown("Made with 💚 towards the Sustainable Future by Girisha Malni" )
-
 
