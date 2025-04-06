@@ -18,10 +18,8 @@ from langchain.embeddings import HuggingFaceEmbeddings
 from crewai import Crew, Agent, Task
 import joblib
 
-# === Streamlit Setup ===
 st.set_page_config(page_title="ESG Analyzer", layout="wide")
 
-# === Load Lottie Animation ===
 def load_lottie(filepath):
     if os.path.exists(filepath):
         with open(filepath, "r") as f:
@@ -32,7 +30,6 @@ header_lottie = load_lottie("assets/esg_lottie.json")
 planner_lottie = load_lottie("assets/planner.json")
 strategy_lottie = load_lottie("assets/strategy.json")
 
-# === Sidebar Utilities ===
 st.sidebar.title("🌎 ESG Analyzer Tools")
 uploaded_file = st.sidebar.file_uploader("📄 Upload ESG Report (PDF, Text, or Image)", type=["pdf", "txt", "png", "jpg"])
 industry = st.sidebar.selectbox("🏢 Select Industry", ["Finance", "Healthcare", "Energy", "Agriculture", "Logistics", "Manufacturing", "Retail", "Technology", "Education", "Automotive"])
@@ -41,14 +38,12 @@ show_trend = st.sidebar.checkbox("Show ESG Trend Analysis")
 enable_recommendations = st.sidebar.checkbox("Enable AI Recommendations")
 run_analysis = st.sidebar.button("🧠 Run Agentic Analysis")
 
-# === Header ===
 with st.container():
     st.subheader("🍀Welcome to ECOSAUR : the ESG Analyzer")
     st.title("Empowering Responsible Decision Making through numbers : Sustainability Meets Intelligence")
     if header_lottie:
         st_lottie(header_lottie, height=150)
 
-# === OCR and Summarization ===
 def extract_text_from_pdf(pdf_file):
     try:
         reader = PdfReader(pdf_file)
@@ -71,7 +66,6 @@ def load_esg_model():
 
 ml_model, model_features = load_esg_model()
 
-# === ML-based ESG Score Prediction from Metadata (optional override) ===
 def predict_esg_scores_ml(metadata_dict: Dict[str, str]) -> Dict[str, int]:
     if not ml_model:
         return None
@@ -121,7 +115,7 @@ def generate_dynamic_insights(scores: Dict[str, int]) -> str:
         insights.append("✅ Excellent performance across all ESG pillars.")
     return "\n".join(insights)
 
-# === Benchmark Data ===
+
 industry_benchmarks = {
     "Finance": {"Environment": 65, "Social": 70, "Governance": 75},
     "Healthcare": {"Environment": 60, "Social": 75, "Governance": 70},
@@ -146,17 +140,16 @@ def display_categorywise_comparison(esg_scores: Dict[str, int], benchmark: Dict[
         "Difference": [esg_scores[cat] - benchmark[cat] for cat in esg_scores.keys()]
     })
 
-    # Display table
+    
     st.dataframe(category_df.style.background_gradient(cmap='RdYlGn', subset=["Difference"]))
 
-    # Plot bar chart
+
     bar_fig = px.bar(category_df, x="Category", y=["Your Score", "Benchmark"],
                      barmode="group", text_auto=True,
                      title="Category-wise ESG Score vs Benchmark")
     st.plotly_chart(bar_fig)
 
 
-# === CrewAI Agents ===
 def run_crewai_agents(content):
     extractor = Agent(
         name="Extractor",
@@ -179,16 +172,16 @@ def run_crewai_agents(content):
         backstory="Knowledgeable in sustainable business practices and ESG compliance strategies across sectors."
     )
 
-    # Sample task logic (expandable)
+
     st.code("CrewAgent-Extractor: ESG data extracted")
     st.code("CrewAgent-Analyzer: Compared with benchmarks")
     st.code("CrewAgent-InsightGenerator: Generated insights")
 
-# === Main ===
+
 if uploaded_file is not None:
     file_ext = uploaded_file.name.split(".")[-1].lower()
 
-    # Extract content based on file type
+
     if file_ext == "txt":
         content = uploaded_file.read().decode("utf-8", errors="ignore")
     elif file_ext == "pdf":
@@ -198,17 +191,17 @@ if uploaded_file is not None:
     else:
         content = ""
 
-    # Display extracted content in a text area (limit to 2000 chars)
+
     st.text_area("📝 Extracted Content", content[:2000], height=300)
 
-    # Mock or extract metadata (can improve this later with NLP or file parsing)
+   
     metadata_dict = {
-        "Country Code": "IND",       # optionally extract dynamically
-        "Year": "2023",              # optionally extract from filename or text
-        "Series Code": "ESGAGGREGATE"  # or set dynamically based on content
+        "Country Code": "IND",      
+        "Year": "2023",             
+        "Series Code": "ESGAGGREGATE"  
     }
 
-    # Predict ESG scores using ML model first
+  
     ml_scores = predict_esg_scores_ml(metadata_dict)
 
     if ml_scores:
@@ -218,13 +211,12 @@ if uploaded_file is not None:
         esg_scores = extract_esg_scores(content)
         st.info("⚠️ Fallback to rule-based ESG score extraction.")
 
-    # Get industry from user or other logic
+    
     industry = st.selectbox("🏭 Select Industry", list(industry_benchmarks.keys()))
 
-    # Load benchmark or use default
     benchmark = industry_benchmarks.get(industry, {"Environment": 60, "Social": 60, "Governance": 60})
 
-    # Display comparison chart or metric
+
     display_categorywise_comparison(esg_scores, benchmark)
 
 
@@ -269,17 +261,16 @@ if uploaded_file is not None:
     if run_analysis:
         run_crewai_agents(content)
 
-# === ESG Time Series Feature ===
 if show_trend:
     st.subheader("📈 ESG Time Series Trend Analysis")
 
     if "esg_timeseries" not in st.session_state:
         st.session_state["esg_timeseries"] = []
 
-    # Ask for optional date
+
     date_input = st.date_input("📅 Date of Report", help="Optional: Associate this ESG report with a specific date.")
 
-    # Add current report to session time series
+
     if st.button("➕ Add Report to ESG Trend Tracker"):
         st.session_state["esg_timeseries"].append({
             "Date": date_input if date_input else pd.Timestamp.now().date(),
@@ -290,14 +281,12 @@ if show_trend:
         })
         st.success("Added report to ESG time series!")
 
-    # Convert to DataFrame
+   
     if len(st.session_state["esg_timeseries"]) >= 2:
         ts_df = pd.DataFrame(st.session_state["esg_timeseries"])
         ts_df = ts_df.sort_values("Date")
 
         st.dataframe(ts_df)
-
-        # Plot ESG Over Time
         line_fig = px.line(ts_df, x="Date", y=["Environment", "Social", "Governance", "Overall"],
                            markers=True, title="📊 ESG Trend Over Time")
         st.plotly_chart(line_fig, use_container_width=True)
